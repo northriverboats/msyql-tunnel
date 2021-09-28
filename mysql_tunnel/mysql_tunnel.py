@@ -21,6 +21,7 @@ class TunnelSQL(object):
     def __init__(self, silent=True, cursor='Cursor',
                  ssh_host=None, ssh_port=None, ssh_user=None,
                  ssh_bind_port=None, ssh_host_port=None):
+
         self.cursorclass = getattr(cursors, cursor)
         self.logging= not silent
         self.ssh_host=os.getenv('SSH_HOST') or ssh_host
@@ -29,11 +30,11 @@ class TunnelSQL(object):
         self.ssh_bind_port=int(os.getenv('SSH_BIND_PORT')) or ssh_bind_port
         self.ssh_host_port=int(os.getenv('SSH_HOST_PORT')) or ssh_host_port
 
-        self.user = os.getenv('DB_USER')
-        self.passwd = os.getenv('DB_PASS')
-        self.dbname = os.getenv('DB_NAME')
+        self.db_user = os.getenv('DB_USER')
+        self.db_passwd = os.getenv('DB_PASS')
+        self.db_name = os.getenv('DB_NAME')
         self.mysql_port = int(os.getenv('DB_PORT')) or 3308
-        self.mysql_host = self.ssh_host  or os.getenv('DB_HOST') or None
+        self.mysql_host = os.getenv('DB_HOST') or self.ssh_host or None
         self.conn = None
         self.cursor = None
 
@@ -84,13 +85,13 @@ class TunnelSQL(object):
     def open_connection(self):
         message = ("Starting mysql with command: mysql -h {} -P {} "
                    "-u {} --password={}  {}")
-        self.log(message.format(self.mysql_host, self.mysql_port, self.user,
-                                self.passwd, self.dbname), end="")
+        self.log(message.format(self.mysql_host, self.mysql_port, self.db_user,
+                                self.db_passwd, self.db_name), end="")
         self.conn = connect(host=self.mysql_host,
                             port=self.mysql_port,
-                            user=self.user,
-                            passwd=self.passwd,
-                            db=self.dbname,
+                            user=self.db_user,
+                            passwd=self.db_passwd,
+                            db=self.db_name,
                             cursorclass=self.cursorclass)
         self.if_error(self.conn is None, '...connection Failed')
         self.log("...started!")
